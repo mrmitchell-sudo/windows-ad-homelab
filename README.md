@@ -2,7 +2,7 @@
 
 A virtualized Active Directory environment built and run like the IT department of a small fictional company, **Harbor Logistics**. The lab covers domain services, networking, Group Policy, PowerShell automation, help desk scenarios, and security monitoring, and documents the reasoning and troubleshooting behind each step.
 
-**Status:** Phase 4 complete. Harbor Logistics has department OUs, users created in bulk with PowerShell, a group-based department share, Group Policy for passwords, drives and workstation security, and four help desk tickets worked end to end. Phase 5 (security monitoring) is next.
+**Status:** Phase 5 complete. The network now has detailed Windows auditing, Sysmon on every endpoint, and a Wazuh SIEM collecting it all, proven end to end by generating a failed logon and watching the SIEM correlate it with the resulting lockout across two machines. Detection engineering is next.
 
 ## Network
 
@@ -34,14 +34,17 @@ DC01 has two network adapters. One reaches the internet through VirtualBox NAT; 
 | 2 | AD DS, DNS, DHCP, NAT routing | Done ([write-up](docs/02-ad-dns-dhcp.md)) |
 | 3 | Join a Windows 11 client to the domain | Done ([write-up](docs/03-client-domain-join.md)) |
 | 4 | OUs, users, groups, GPOs, file shares, PowerShell automation, mock help desk tickets | Done ([write-up](docs/04-users-groups-gpo.md), [tickets](tickets/)) |
-| 5 | Audit logging, Sysmon, SIEM, simulated attacks and detections | Next |
+| 5 | Audit logging, Sysmon, Wazuh SIEM, log forwarding, end-to-end detection | Done ([write-up](docs/05-logging-siem.md)) |
+| 6 | Detection engineering: tuning and writing SIEM rules | Next |
 
 ## Skills
 
-Windows Server 2025 · Windows 11 Enterprise · Active Directory Domain Services · Domain join and user onboarding · DNS (zones, forwarders, multi-homed DC registration) · DHCP (scopes, options, AD authorization) · RRAS / NAT routing · TCP/IP addressing · VirtualBox · OU design · Group Policy (security settings, drive maps, gpresult) · AGDLP and NTFS/share permissions · Access-Based Enumeration · PowerShell automation · Password and lockout policy · Least privilege · Windows event logs · Help desk triage · Troubleshooting and documentation
+Windows Server 2025 · Windows 11 Enterprise · Active Directory Domain Services · Domain join and user onboarding · DNS (zones, forwarders, multi-homed DC registration) · DHCP (scopes, options, AD authorization) · RRAS / NAT routing · TCP/IP addressing · VirtualBox · OU design · Group Policy (security settings, drive maps, gpresult) · AGDLP and NTFS/share permissions · Access-Based Enumeration · PowerShell automation · Password and lockout policy · Least privilege · Windows event logs · Advanced Audit Policy · Command-line and PowerShell script-block logging · Sysmon · Wazuh SIEM (deployment, agents, log forwarding, alert correlation) · Linux server administration (systemd-networkd, static IP, services) · Supply-chain verification (signatures, checksums) · Help desk triage · Troubleshooting and documentation
 
 ## Highlights
 
+- Stood up a Wazuh SIEM collecting Windows Security, Sysmon and PowerShell logs from every endpoint, and proved detection end to end: a failed logon surfaced as an alert and the SIEM correlated it with the resulting account lockout across two machines, without touching the domain controller ([details](docs/05-logging-siem.md#5-end-to-end-test-catching-a-failed-logon)).
+- Turned on detailed auditing via Group Policy (command-line logging in 4688, PowerShell script-block logging in 4104) and verified it against `auditpol` and live events ([details](docs/05-logging-siem.md#1-audit-policy-group-policy)).
 - Worked four help desk tickets end to end, including checking event 4740 for the source of a lockout before unlocking, and finding that a mapped drive survived after a user left the OU, which I fixed so the mapping is removed automatically ([tickets](tickets/)).
 - Wrote PowerShell scripts that create users from a CSV and build a department share with AGDLP group nesting, both safe to re-run and with no passwords stored ([scripts](scripts/)).
 - Isolated a client-side DNS and internet failure to swapped RRAS NAT interface roles by ruling out the firewall, DNS service and network profiles one at a time ([details](docs/03-client-domain-join.md#4-troubleshooting-dns-and-internet-failed-from-the-client)).
